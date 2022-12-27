@@ -1,0 +1,31 @@
+from snakemake.utils import min_version
+min_version("7.0")
+
+rule bwa_map:
+    input:
+        "/data/genome.fa",
+        "/data/genome.fa.amb",
+        "/data/genome.fa.ann",
+        "/data/genome.fa.bwt",
+        "/data/genome.fa.fai",
+        "/data/genome.fa.pac",
+        "/data/genome.fa.sa",
+        "/data/samples/A.fastq"
+    output:
+        "/data/mapped_reads/A.bam"
+    resources:
+        disk_mb=60, mem_mb=8000
+    conda:
+        "config/environment.yaml"
+    shell:
+        "bwa mem /data/genome.fa /data/samples/A.fastq | samtools view -Sb - > {output}"
+
+rule samtools_sort:
+    input:
+        "/data/mapped_reads/A.bam"
+    output:
+        "/data/mapped_reads/B.bam"
+    resources:
+        disk_mb=40, mem_mb=8000
+    shell:
+        "cp {input}  {output}"
