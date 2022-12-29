@@ -87,13 +87,13 @@
 
 #### Load the data 
 
-### The fuel for the engine is the data you put into the S3 bucket called **wgs-pipeline-bucket**. This repo provides the example data and an AWS CLI script to sync this data to the S3 bucket. You can also create the folders and upload through the AWS Console.
+### The fuel for the engine is the data you put into the S3 bucket called **wgs-pipeline-bucket-xxxxxxxx***. This repo provides the example data and an AWS CLI script to sync this data to the S3 bucket. You can also create the folders and upload through the AWS Console.
 <br>
 
 1. Install the AWS CLI and configure for the same user that created this deployment
-2. From the S3 directory in thsi repo, sync the data directory with the S3 bucket
+2. From the S3 directory in this repo, sync the data directory with the S3 bucket created. The bucket name will begin with wgs-pipeline-bucket and will also include a unique identifier at the end. It will look something like wgs-pipeline-bucket-b2e2f990
 
-`aws s3 sync data s3://wgs-pipeline-bucket`
+`aws s3 sync data s3://wgs-pipeline-bucket-xxxxxxxx*`
 <br>
 
 3. Verify there is a **data** folder in the S3 bucket. This should look like below image. Make sure the folder structure is right!
@@ -108,7 +108,7 @@
 
 1. Navigate to the lambda console, and click on the **WGSStateExecutor** Lambda.
 2. Take a look at the **Configuration** tab and the environment variables defined.
-3. You may have to change **TASK** variable for the right revision. It typically has to be moved up 1 or 2 like from wgs-pipeline-task:5 to wgs-pipeline-task:6
+3. IMPORTANT! You will have to change the **TASK** variable for the right revision. It typically has to be moved up 1 or 2 like from wgs-pipeline-task:5 to wgs-pipeline-task:6
 4. You can find the right revision in the ECS console.
 5. Once this revision is correct, create a Lambda Test configuration and then run the Lambda. Some images below to help with this part.
 
@@ -169,7 +169,7 @@
 
    <br>
 
-4. Next, you will need to save off your data in the S3 bucket called **wgs-pipeline-bucket** and then empty and delete the bucket
+4. Next, you will need to save off your data in the S3 bucket called **wgs-pipeline-bucket-xxxxxxxx** and then empty and delete the bucket
 5. Finally, after the CodeBuild project has completed and you have deleted the S3 bucket, go to the CloudFormation service in the AWS console and delete the stack you created initially
 
     ![alt text](../SS/CloudFormation_0.png)

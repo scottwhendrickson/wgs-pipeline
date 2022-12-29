@@ -129,9 +129,19 @@ Resources:
 
   WGSBucket:
     Type: "AWS::S3::Bucket"
-    DeletionPolicy: Retain
     Properties:
-      BucketName: "wgs-pipeline-bucket"
+      BucketName: !Join
+        - "-"
+        - - "wgs-pipeline-bucket"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
 
   WGSLambdaStatesRole:
     Type: AWS::IAM::Role
@@ -409,6 +419,8 @@ Resources:
             Value: biolabs/snakemake
           - Name: IMAGE_TAG
             Value: "latest"
+          - Name: WGS_BUCKET
+            Value: !Ref WGSBucket
         Image: "aws/codebuild/standard:5.0"
         PrivilegedMode: true
         Type: "LINUX_CONTAINER"
@@ -436,7 +448,7 @@ Resources:
                 - echo Build completed on `date`
                 - echo Pushing the Docker image...
                 - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
-                - tibanna deploy_unicorn --usergroup=wgs-pipeline --buckets=wgs-pipeline-bucket
+                - tibanna deploy_unicorn --usergroup=wgs-pipeline --buckets=$WGS_BUCKET
   
   CodeBuildProjectRemove:
     Type: AWS::CodeBuild::Project
@@ -585,7 +597,7 @@ Resources:
             - 'cd /home ; curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "./awscliv2.zip" ; unzip ./awscliv2.zip ; ./aws/install ; /usr/local/bin/aws s3 sync s3://scotth-bio-pipeline/data/snakefiles ./  ; pip install -U tibanna; export TIBANNA_DEFAULT_STEP_FUNCTION_NAME=tibanna_unicorn_wgs_pipeline ; ls -al ./ ; snakemake -R samtools_sort --tibanna --precommand="ln -s /data1/snakemake/scotth-bio-pipeline/data /data "  --tibanna-config spot_instance=false behavior_on_capacity_limit=wait_and_retry --default-remote-prefix=scotth-bio-pipeline  --jobs=2 --use-conda'
       Cpu: 2048
       EphemeralStorage:
-        sizeInGiB: 21
+        SizeInGiB: 21
       ExecutionRoleArn: !Join
         - ""
         - - "arn:aws:iam::"
@@ -616,7 +628,9 @@ Resources:
         Environment:
           Variables:
             CLUSTER: wgs-pipeline-cluster
-            CMD: 'cd ~/ ; curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "./awscliv2.zip" ; unzip ./awscliv2.zip ; ./aws/install ; /usr/local/bin/aws s3 sync s3://wgs-pipeline-bucket/data/snakefiles ./; pwd; pip install -U tibanna; export TIBANNA_DEFAULT_STEP_FUNCTION_NAME=tibanna_unicorn_wgs-pipeline ; snakemake -R samtools_sort --tibanna --precommand="ln -s /data1/snakemake/wgs-pipeline-bucket/data /data "  --tibanna-config spot_instance=false behavior_on_capacity_limit=wait_and_retry --default-remote-prefix=wgs-pipeline-bucket --jobs=2 --use-conda;'
+            CMD: !Sub
+              - 'cd ~/ ; curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "./awscliv2.zip" ; unzip ./awscliv2.zip ; ./aws/install ; /usr/local/bin/aws s3 sync s3://${WGS_BUCKET}/data/snakefiles ./; pwd; pip install -U tibanna; export TIBANNA_DEFAULT_STEP_FUNCTION_NAME=tibanna_unicorn_wgs-pipeline ; snakemake -R samtools_sort --tibanna --precommand="ln -s /data1/snakemake/${WGS_BUCKET}/data /data "  --tibanna-config spot_instance=false behavior_on_capacity_limit=wait_and_retry --default-remote-prefix=${WGS_BUCKET} --jobs=2 --use-conda;'
+              - WGS_BUCKET: !Ref WGSBucket
             SECURITY_GROUP: !Ref VPCSecurityGroup
             SUBNET_A: !Ref SubnetA
             SUBNET_B: !Ref SubnetB
