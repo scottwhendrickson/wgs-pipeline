@@ -24,8 +24,9 @@
 3. Select **Upload a template file** and use the **Choose File** button to select the AWS-WGS-Snakemake.yaml file in this repo
 4. Hit Next
 5. On this screen name the stack **wgs-stack** and leave the network defaults as they are unless this CIDR block conflicts with an existing one, in which case you will need to specify new blocks
-6. Hit Next twice and check the box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
-7. Then hit submit to start the stack deployment. Some images below should help as you step through this part
+6. Provide an email address for budget alerts
+7. Hit Next twice and check the box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
+8. Then hit submit to start the stack deployment. Some images below should help as you step through this part
 
    ![alt text](../SS/CloudFormation_1.png)
 
@@ -108,7 +109,7 @@
 
 1. Navigate to the lambda console, and click on the **WGSStateExecutor** Lambda.
 2. Take a look at the **Configuration** tab and the environment variables defined.
-3. IMPORTANT! You will have to change the **TASK** variable for the right revision. It typically has to be moved up 1 or 2 like from wgs-pipeline-task:5 to wgs-pipeline-task:6
+3. IMPORTANT! You may have to change the **TASK** variable for the right revision. It typically has to be moved up 1 like from wgs-pipeline-task:1 to wgs-pipeline-task:2
 4. You can find the right revision in the ECS console.
 5. Once this revision is correct, create a Lambda Test configuration and then run the Lambda. Some images below to help with this part.
 
@@ -173,3 +174,9 @@
 5. Finally, after the CodeBuild project has completed and you have deleted the S3 bucket, go to the CloudFormation service in the AWS console and delete the stack you created initially
 
     ![alt text](../SS/CloudFormation_0.png)
+
+** Issues
+
+*** Docker Pull Issue
+*** Error response from daemon: toomanyrequests: You have reached your pull rate limit. You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
+**** FIX: retry pipeline

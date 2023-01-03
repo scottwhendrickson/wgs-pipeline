@@ -3,6 +3,9 @@ Parameters:
     Type: String
     Default: "snakemake-vpc"
     Description: Name of the VPC
+  Email:
+    Description: The email address to send budget notifications to
+    Type: String
   VPCCIDR:
     Type: String
     Default: "10.0.0.0/16"
@@ -634,7 +637,7 @@ Resources:
             SECURITY_GROUP: !Ref VPCSecurityGroup
             SUBNET_A: !Ref SubnetA
             SUBNET_B: !Ref SubnetB
-            TASK: wgs-pipeline-task:6
+            TASK: wgs-pipeline-task:1
 
         Code:
           ZipFile: |
@@ -693,6 +696,41 @@ Resources:
                           'statusCode': 500,
                           'body': str(e)
                       }  
+  Budget:
+    Type: 'AWS::Budgets::Budget'
+    Properties:
+      Budget:
+        BudgetName: wgs-pipeline-budget
+        BudgetLimit:
+          Amount: 100
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 75
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref Email
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 99
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref Email
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: FORECASTED
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref Email
                   
 
 Outputs:
@@ -707,3 +745,13 @@ Outputs:
   WGSBucket:
     Description: The bucket for data and snakefiles.
     Value: !Ref WGSBucket
+
+  BudgetURL:
+    Description: Budgets URL
+    Value: !Join 
+      - ''
+      - - 'http://'
+        - !Ref 'AWS::Region'
+        - .console.aws.amazon.com/billing/home?region=
+        - !Ref 'AWS::Region'
+        - '#/budgets'
