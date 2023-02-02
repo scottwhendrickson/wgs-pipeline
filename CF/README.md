@@ -53,6 +53,15 @@
 
 <br>
 
+#### Update Environment for check_task_awsem_wgs-pipeline-xxxxxxx Lambda
+1. Before running you will need to update the check_task_awsem_wgs-pipeline-xxxxxxx function to have TIBANNA_DEFAULT_STEP_FUNCTION_NAME that matches your step function name
+2. TIBANNA_DEFAULT_STEP_FUNCTION_NAME is set by default to tibanna_unicorn. You should change this to your Tibanna step function which will be something like tibanna_unicorn_wgs-pipeline-xxxxxxx
+3. See image below
+![alt text](../SS/LambdaCheckTask_01.png)
+
+    <br>
+
+
 #### Time to look around
 - The engine for this deployment will be powered by a snakemake container and a Tibanna step function that calls Lambdas to allocate the appropriate EC2 instances based on snakefile parameters for memory and cpu. 
 
